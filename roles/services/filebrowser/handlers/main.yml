@@ -1,0 +1,5 @@
+- name: restart filebrowser
+  community.docker.docker_compose_v2:
+    project_src: /opt/services/filebrowser
+    state: present
+    recreate: always

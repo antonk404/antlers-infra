@@ -1,0 +1,5 @@
+- name: restart matrix
+  community.docker.docker_compose_v2:
+    project_src: /opt/services/matrix
+    state: present
+    recreate: always

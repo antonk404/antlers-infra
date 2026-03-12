@@ -1,0 +1,12 @@
+- name: Configure hub server
+  hosts: hub
+  roles:
+    - common/docker
+    - nginx
+    - amneziawg
+    - services/filebrowser
+    - services/matrix
+    - services/jitsi
+    - services/monitoring/prometheus
+    - services/monitoring/grafana
+    - services/monitoring/node-exporter

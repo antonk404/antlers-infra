@@ -1,0 +1,25 @@
+- name: Ensure filebrowser directory exists
+  file:
+    path: /opt/services/filebrowser
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose
+  copy:
+    src: docker-compose.yaml
+    dest: /opt/services/filebrowser/docker-compose.yaml
+    mode: '0644'
+  notify: restart filebrowser
+
+- name: Ensure database.db exists
+  file:
+    path: /opt/services/filebrowser/database.db
+    state: touch
+    mode: '0644'
+    access_time: preserve  # ← touch не будет обновлять время если файл уже есть
+    modification_time: preserve
+
+- name: Start filebrowser
+  community.docker.docker_compose_v2:
+    project_src: /opt/services/filebrowser
+    state: present

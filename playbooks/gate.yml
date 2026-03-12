@@ -1,0 +1,6 @@
+- name: Configure gate servers
+  hosts: gate
+  roles:
+    - common/docker
+    - amneziawg
+    - services/monitoring/node-exporter 

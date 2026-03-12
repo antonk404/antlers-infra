@@ -1,0 +1,34 @@
+- name: Ensure matrix directories exist
+  file:
+    path: "/opt/services/matrix/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - element-config
+    - synapse-data
+
+- name: Copy docker-compose
+  copy:
+    src: docker-compose.yaml
+    dest: /opt/services/matrix/docker-compose.yaml
+    mode: '0644'
+  notify: restart matrix
+
+- name: Copy element config
+  copy:
+    src: element-config/config.json
+    dest: /opt/services/matrix/element-config/config.json
+    mode: '0644'
+  notify: restart matrix
+
+- name: Copy homeserver.yaml
+  copy:
+    src: homeserver.yaml
+    dest: /opt/services/matrix/synapse-data/homeserver.yaml
+    mode: '0600'
+  notify: restart matrix
+
+- name: Start matrix
+  community.docker.docker_compose_v2:
+    project_src: /opt/services/matrix
+    state: present

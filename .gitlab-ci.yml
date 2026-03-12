@@ -1,0 +1,55 @@
+stages:
+  - validate
+  - deploy
+
+variables:
+  ANSIBLE_HOST_KEY_CHECKING: "False"
+  ANSIBLE_FORCE_COLOR: "true"
+
+# linter
+validate:
+  stage: validate
+  tags:
+    - infra
+  script:
+    - ansible-playbook playbooks/hub.yml --syntax-check
+    - ansible-playbook playbooks/gate.yml --syntax-check
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+deploy:hub:
+  stage: deploy
+  tags:
+    - infra
+  environment:
+    name: production/hub
+  script:
+    - echo "$ANSIBLE_VAULT_PASS" > /tmp/.vault_pass
+    - ansible-playbook playbooks/hub.yml --vault-password-file /tmp/.vault_pass
+  after_script:
+    - rm -f /tmp/.vault_pass
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - roles/nginx/**
+        - roles/amneziawg/**
+        - roles/services/**
+        - playbooks/hub.yml
+
+deploy:gate:
+  stage: deploy
+  tags:
+    - infra
+  environment:
+    name: production/gate
+  script:
+    - echo "$ANSIBLE_VAULT_PASS" > /tmp/.vault_pass
+    - ansible-playbook playbooks/gate.yml --vault-password-file /tmp/.vault_pass
+  after_script:
+    - rm -f /tmp/.vault_pass
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - roles/amneziawg/**
+        - playbooks/gate.yml

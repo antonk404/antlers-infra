@@ -1,0 +1,28 @@
+- name: Ensure amneziawg config directory exists
+  file:
+    path: /etc/amnezia/amneziawg
+    state: directory
+    owner: root
+    mode: '0700'
+
+- name: Copy AWG configs
+  copy:
+    src: "{{ group_names | difference(['all']) | first }}/{{ inventory_hostname }}/"
+    dest: "/etc/amnezia/amneziawg/"
+    owner: root
+    mode: '0600'
+  notify: restart awg-quick
+
+- name: Find AWG interfaces
+  find:
+    paths: "{{ role_path }}/files/{{ group_names | difference(['all']) | first }}/{{ inventory_hostname }}"
+    patterns: "*.conf"
+  register: awg_conf_files
+  delegate_to: localhost
+
+- name: Ensure AWG services are running
+  systemd:
+    name: "awg-quick@{{ item.path | basename | splitext | first }}"
+    state: started
+    enabled: yes
+  loop: "{{ awg_conf_files.files }}"

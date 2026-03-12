@@ -1,0 +1,5 @@
+- name: restart awg-quick
+  systemd:
+    name: "awg-quick@{{ item.path | basename | splitext | first }}"
+    state: restarted
+  loop: "{{ awg_conf_files.files }}"

@@ -1,0 +1,17 @@
+- name: Ensure jitsi directory exists
+  file:
+    path: /opt/services/jitsi
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose
+  copy:
+    src: docker-compose.yaml
+    dest: /opt/services/jitsi/docker-compose.yaml
+    mode: '0644'
+  notify: restart jitsi
+
+- name: Start jitsi
+  community.docker.docker_compose_v2:
+    project_src: /opt/services/jitsi
+    state: present

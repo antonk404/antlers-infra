@@ -1,0 +1,17 @@
+- name: Ensure monitoring/grafana directory exists
+  file:
+    path: /opt/services/monitoring/grafana
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose
+  copy:
+    src: docker-compose.yaml
+    dest: /opt/services/monitoring/grafana/docker-compose.yaml
+    mode: '0644'
+  notify: restart grafana
+
+- name: Start grafana
+  community.docker.docker_compose_v2:
+    project_src: /opt/services/monitoring/grafana
+    state: present
