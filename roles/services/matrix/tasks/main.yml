@@ -26,7 +26,7 @@
 
 - name: Deploy homeserver.yaml with injected secrets
   copy:
-    content: "{{ lookup('file', role_path + '/files/homeserver.yaml')
+    content: "{{ lookup('file', role_path + '/files/synapse-data/homeserver.yaml')
       | regex_replace('VAULT_MANAGED_POSTGRES_PASSWORD', matrix_secrets.secret.postgres_password)
       | regex_replace('VAULT_MANAGED_REGISTRATION_SECRET', matrix_secrets.secret.registration_shared_secret)
       | regex_replace('VAULT_MANAGED_MACAROON_KEY', matrix_secrets.secret.macaroon_secret_key)

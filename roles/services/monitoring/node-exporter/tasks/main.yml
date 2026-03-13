@@ -1,3 +1,8 @@
+- name: Ensure monitoring network exists
+  community.docker.docker_network:
+    name: monitoring
+    state: present
+
 - name: Ensure monitoring/node-exporter directory exists
   file:
     path: /opt/services/monitoring/node-exporter

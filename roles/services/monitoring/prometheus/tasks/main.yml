@@ -1,3 +1,8 @@
+- name: Ensure monitoring network exists
+  community.docker.docker_network:
+    name: monitoring
+    state: present
+
 - name: Ensure monitoring/prometheus exists
   file:
     path: /opt/services/monitoring/prometheus

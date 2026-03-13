@@ -19,4 +19,4 @@ volumes:
   prometheus_data:
 networks:
   monitoring:
-    driver: bridge
+    external: true    
