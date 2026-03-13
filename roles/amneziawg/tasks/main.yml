@@ -5,14 +5,6 @@
     owner: root
     mode: '0700'
 
-- name: Copy AWG configs
-  copy:
-    src: "{{ group_names | difference(['all']) | first }}/{{ inventory_hostname }}/"
-    dest: "/etc/amnezia/amneziawg/"
-    owner: root
-    mode: '0600'
-  notify: restart awg-quick
-
 - name: Find AWG interfaces
   find:
     paths: "{{ role_path }}/files/{{ group_names | difference(['all']) | first }}/{{ inventory_hostname }}"
@@ -20,9 +12,28 @@
   register: awg_conf_files
   delegate_to: localhost
 
+- name: Get AWG private keys from Vault
+  community.hashi_vault.vault_kv2_get:
+    url: "http://30.0.0.1:8200"
+    path: "{{ group_names | difference(['all']) | first }}/{{ inventory_hostname }}/{{ item.path | basename | splitext | first }}"
+    engine_mount_point: infra
+    token: "{{ lookup('env', 'VAULT_TOKEN') }}"
+  register: awg_vault_secrets
+  loop: "{{ awg_conf_files.files }}"
+  delegate_to: localhost
+
+- name: Deploy AWG configs with injected private keys
+  copy:
+    content: "{{ lookup('file', item.item.path) | regex_replace('PrivateKey = VAULT_MANAGED', 'PrivateKey = ' + item.secret.private_key) }}"
+    dest: "/etc/amnezia/amneziawg/{{ item.item.path | basename }}"
+    owner: root
+    mode: '0600'
+  loop: "{{ awg_vault_secrets.results }}"
+  notify: restart awg-quick
+
 - name: Ensure AWG services are running
   systemd:
-    name: "awg-quick@{{ item.path | basename | splitext | first }}"
+    name: "awg-quick@{{ item.item.path | basename | splitext | first }}"
     state: started
     enabled: yes
-  loop: "{{ awg_conf_files.files }}"
+  loop: "{{ awg_vault_secrets.results }}"

@@ -3,4 +3,4 @@
   roles:
     - common/docker
     - amneziawg
-    - services/monitoring/node-exporter 
+    - services/monitoring/node-exporter

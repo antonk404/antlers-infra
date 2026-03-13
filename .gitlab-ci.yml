@@ -53,3 +53,21 @@ deploy:gate:
       changes:
         - roles/amneziawg/**
         - playbooks/gate.yml
+
+deploy:gate-dns:
+  stage: deploy
+  tags:
+    - infra
+  environment:
+    name: production/gate-dns
+  script:
+    - echo "$ANSIBLE_VAULT_PASS" > /tmp/.vault_pass
+    - ansible-playbook playbooks/gate-dns.yml --vault-password-file /tmp/.vault_pass
+  after_script:
+    - rm -f /tmp/.vault_pass
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - roles/amneziawg/**
+        - roles/services/coredns/**
+        - playbooks/gate-dns.yml

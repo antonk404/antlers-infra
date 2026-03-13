@@ -1,0 +1,11 @@
+services:
+  coredns:
+    image: coredns/coredns:latest
+    container_name: coredns
+    network_mode: host
+    restart: unless-stopped
+    ports:
+      - "30.0.0.2:53:53/udp"
+      - "30.0.0.2:53:53/tcp"
+    volumes:
+      - ./coredns/Corefile:/Corefile

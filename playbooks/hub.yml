@@ -4,6 +4,7 @@
     - common/docker
     - nginx
     - amneziawg
+    - services/vault
     - services/filebrowser
     - services/matrix
     - services/jitsi

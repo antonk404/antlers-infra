@@ -4,11 +4,21 @@
     state: directory
     mode: '0755'
 
-- name: Copy docker-compose
+- name: Get grafana secrets from Vault
+  community.hashi_vault.vault_kv2_get:
+    url: "http://30.0.0.1:8200"
+    path: "services/grafana"
+    engine_mount_point: infra
+    token: "{{ lookup('env', 'VAULT_TOKEN') }}"
+  register: grafana_secrets
+  delegate_to: localhost
+
+- name: Deploy docker-compose with injected secrets
   copy:
-    src: docker-compose.yaml
+    content: "{{ lookup('file', role_path + '/files/docker-compose.yaml')
+      | regex_replace('GF_SECURITY_ADMIN_PASSWORD=VAULT_MANAGED', 'GF_SECURITY_ADMIN_PASSWORD=' + grafana_secrets.secret.admin_password) }}"
     dest: /opt/services/monitoring/grafana/docker-compose.yaml
-    mode: '0644'
+    mode: '0600'
   notify: restart grafana
 
 - name: Start grafana

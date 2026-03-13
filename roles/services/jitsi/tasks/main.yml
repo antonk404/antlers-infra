@@ -4,11 +4,23 @@
     state: directory
     mode: '0755'
 
-- name: Copy docker-compose
+- name: Get jitsi secrets from Vault
+  community.hashi_vault.vault_kv2_get:
+    url: "http://30.0.0.1:8200"
+    path: "services/jitsi"
+    engine_mount_point: infra
+    token: "{{ lookup('env', 'VAULT_TOKEN') }}"
+  register: jitsi_secrets
+  delegate_to: localhost
+
+- name: Deploy docker-compose with injected secrets
   copy:
-    src: docker-compose.yaml
+    content: "{{ lookup('file', role_path + '/files/docker-compose.yaml')
+      | regex_replace('JICOFO_COMPONENT_SECRET=VAULT_MANAGED', 'JICOFO_COMPONENT_SECRET=' + jitsi_secrets.secret.jicofo_component_secret)
+      | regex_replace('JICOFO_AUTH_PASSWORD=VAULT_MANAGED', 'JICOFO_AUTH_PASSWORD=' + jitsi_secrets.secret.jicofo_auth_password)
+      | regex_replace('JVB_AUTH_PASSWORD=VAULT_MANAGED', 'JVB_AUTH_PASSWORD=' + jitsi_secrets.secret.jvb_auth_password) }}"
     dest: /opt/services/jitsi/docker-compose.yaml
-    mode: '0644'
+    mode: '0600'
   notify: restart jitsi
 
 - name: Start jitsi

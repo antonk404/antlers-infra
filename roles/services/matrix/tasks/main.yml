@@ -7,11 +7,32 @@
     - element-config
     - synapse-data
 
-- name: Copy docker-compose
+- name: Get matrix secrets from Vault
+  community.hashi_vault.vault_kv2_get:
+    url: "http://30.0.0.1:8200"
+    path: "services/matrix"
+    engine_mount_point: infra
+    token: "{{ lookup('env', 'VAULT_TOKEN') }}"
+  register: matrix_secrets
+  delegate_to: localhost
+
+- name: Deploy docker-compose with injected secrets
   copy:
-    src: docker-compose.yaml
+    content: "{{ lookup('file', role_path + '/files/docker-compose.yaml')
+      | regex_replace('POSTGRES_PASSWORD: VAULT_MANAGED', 'POSTGRES_PASSWORD: ' + matrix_secrets.secret.postgres_password) }}"
     dest: /opt/services/matrix/docker-compose.yaml
-    mode: '0644'
+    mode: '0600'
+  notify: restart matrix
+
+- name: Deploy homeserver.yaml with injected secrets
+  copy:
+    content: "{{ lookup('file', role_path + '/files/homeserver.yaml')
+      | regex_replace('VAULT_MANAGED_POSTGRES_PASSWORD', matrix_secrets.secret.postgres_password)
+      | regex_replace('VAULT_MANAGED_REGISTRATION_SECRET', matrix_secrets.secret.registration_shared_secret)
+      | regex_replace('VAULT_MANAGED_MACAROON_KEY', matrix_secrets.secret.macaroon_secret_key)
+      | regex_replace('VAULT_MANAGED_FORM_SECRET', matrix_secrets.secret.form_secret) }}"
+    dest: /opt/services/matrix/synapse-data/homeserver.yaml
+    mode: '0600'
   notify: restart matrix
 
 - name: Copy element config
@@ -19,13 +40,6 @@
     src: element-config/config.json
     dest: /opt/services/matrix/element-config/config.json
     mode: '0644'
-  notify: restart matrix
-
-- name: Copy homeserver.yaml
-  copy:
-    src: homeserver.yaml
-    dest: /opt/services/matrix/synapse-data/homeserver.yaml
-    mode: '0600'
   notify: restart matrix
 
 - name: Start matrix

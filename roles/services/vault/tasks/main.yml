@@ -1,0 +1,32 @@
+- name: Ensure vault directory exists
+  file:
+    path: /opt/services/vault
+    state: directory
+    mode: '0755'
+
+- name: Ensure vault data directory exists with correct permissions
+  file:
+    path: /opt/services/vault/data
+    state: directory
+    owner: 100
+    group: 1000
+    mode: '0755'
+
+- name: Copy docker-compose
+  copy:
+    src: docker-compose.yaml
+    dest: /opt/services/vault/docker-compose.yaml
+    mode: '0644'
+  notify: restart vault
+
+- name: Copy vault config
+  copy:
+    src: config.hcl
+    dest: /opt/services/vault/config.hcl
+    mode: '0644'
+  notify: restart vault
+
+- name: Start vault
+  community.docker.docker_compose_v2:
+    project_src: /opt/services/vault
+    state: present

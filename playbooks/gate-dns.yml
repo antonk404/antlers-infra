@@ -1,0 +1,7 @@
+- name: Configure gate DNS server
+  hosts: timeweb-ru-moscow-ruentrypoint
+  roles:
+    - common/docker
+    - amneziawg
+    - services/monitoring/node-exporter
+    - services/coredns

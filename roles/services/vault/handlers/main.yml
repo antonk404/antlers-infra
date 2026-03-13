@@ -1,5 +1,5 @@
-- name: restart monitoring
+- name: restart vault
   community.docker.docker_compose_v2:
-    project_src: /opt/services/monitoring
+    project_src: /opt/services/vault
     state: present
     recreate: always

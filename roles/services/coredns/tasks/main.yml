@@ -1,0 +1,30 @@
+- name: Ensure coredns directory exists
+  file:
+    path: /opt/services/coredns
+    state: directory
+    mode: '0755'
+
+- name: Ensure coredns config directory exists
+  file:
+    path: /opt/services/coredns/coredns
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose
+  copy:
+    src: docker-compose.yaml
+    dest: /opt/services/coredns/docker-compose.yaml
+    mode: '0644'
+  notify: restart coredns
+
+- name: Copy Corefile
+  copy:
+    src: coredns/Corefile
+    dest: /opt/services/coredns/coredns/Corefile
+    mode: '0644'
+  notify: restart coredns
+
+- name: Start coredns
+  community.docker.docker_compose_v2:
+    project_src: /opt/services/coredns
+    state: present

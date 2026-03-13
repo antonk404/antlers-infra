@@ -1,0 +1,41 @@
+su {
+    hosts {
+        30.0.0.1 filebrowser.su
+        30.0.0.1 element.su
+        30.0.0.1 matrix.su
+        fallthrough
+    }
+    cache
+    log
+}
+
+matkini {
+    hosts {
+        30.0.0.1 frankfurt-1.hub.matkini
+        30.0.0.2 moscow-1.gate.matkini
+        30.0.0.3 moscow-2.gate.matkini
+    }
+    cache
+    log
+}
+
+. {
+    hosts {
+        30.0.0.1 aistudio.google.com
+        30.0.0.1 gemini.google.com
+        30.0.0.1 alkalimakersuite-pa.clients6.google.com
+        30.0.0.1 developerprofiles-pa.googleapis.com
+        30.0.0.1 notebooklm.google
+        30.0.0.1 notebooklm.google.com
+        30.0.0.1 proactivebackend-pa.googleapis.com
+        30.0.0.1 generativelanguage.googleapis.com
+        30.0.0.1 google.com
+        0.0.0.0 promoted.soundcloud.com
+        0.0.0.0 events-api.soundcloud.com
+        0.0.0.0 telemetry.soundcloud.com
+        fallthrough
+    }
+    forward . 8.8.8.8 1.1.1.1
+    cache
+    log
+}
