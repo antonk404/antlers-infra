@@ -1,0 +1,31 @@
+services:
+  bot:
+    image: avusar/matkini-support:latest
+    container_name: support-bot
+    restart: unless-stopped
+    environment:
+      BOT_TOKEN: VAULT_MANAGED
+      BOT_USERNAME: support_bot
+      ADMIN_IDS: ""
+      DB_PASSWORD: VAULT_MANAGED_DB_PASSWORD
+    depends_on:
+      - postgres
+    networks:
+      - support-net
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: support-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: support
+      POSTGRES_PASSWORD: VAULT_MANAGED_DB_PASSWORD
+      POSTGRES_DB: support
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - support-net
+
+networks:
+  support-net:
+    driver: bridge

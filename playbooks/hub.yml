@@ -11,3 +11,4 @@
     - services/monitoring/prometheus
     - services/monitoring/grafana
     - services/monitoring/node-exporter
+    - services/support
