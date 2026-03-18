@@ -1,3 +1,8 @@
+- name: Ensure portal Docker network exists
+  community.docker.docker_network:
+    name: portal
+    state: present
+
 - name: Ensure vault directory exists
   file:
     path: /opt/services/vault
