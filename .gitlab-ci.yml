@@ -5,6 +5,7 @@ stages:
 variables:
   ANSIBLE_HOST_KEY_CHECKING: "False"
   ANSIBLE_FORCE_COLOR: "true"
+  ANSIBLE_CONFIG: "ansible/ansible.cfg"
 
 # linter
 validate:
@@ -12,11 +13,28 @@ validate:
   tags:
     - infra
   script:
-    - ansible-playbook playbooks/hub.yml --syntax-check
-    - ansible-playbook playbooks/gate.yml --syntax-check
+    - ansible-playbook ansible/playbooks/hub.yml --syntax-check
+    - ansible-playbook ansible/playbooks/gate.yml --syntax-check
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "main"'
+
+
+deploy:k8s:
+  stage: deploy
+  tags:
+    - infra
+  environment:
+    name: production/k8s
+  script:
+    - echo "$KUBECONFIG_B64" | base64 -d > /tmp/kubeconfig
+    - kubectl --kubeconfig=/tmp/kubeconfig apply -f k8s/
+  after_script:
+    - rm -f /tmp/kubeconfig
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - k8s/**
 
 deploy:hub:
   stage: deploy
@@ -26,16 +44,15 @@ deploy:hub:
     name: production/hub
   script:
     - echo "$ANSIBLE_VAULT_PASS" > /tmp/.vault_pass
-    - ansible-playbook playbooks/hub.yml --vault-password-file /tmp/.vault_pass
+    - ansible-playbook ansible/playbooks/hub.yml --vault-password-file /tmp/.vault_pass
   after_script:
     - rm -f /tmp/.vault_pass
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
-        - roles/nginx/**
-        - roles/amneziawg/**
-        - roles/services/**
-        - playbooks/hub.yml
+        - ansible/roles/nginx/**
+        - ansible/roles/amneziawg/**
+        - ansible/playbooks/hub.yml
 
 deploy:gate:
   stage: deploy
@@ -45,29 +62,11 @@ deploy:gate:
     name: production/gate
   script:
     - echo "$ANSIBLE_VAULT_PASS" > /tmp/.vault_pass
-    - ansible-playbook playbooks/gate.yml --vault-password-file /tmp/.vault_pass
+    - ansible-playbook ansible/playbooks/gate.yml --vault-password-file /tmp/.vault_pass
   after_script:
     - rm -f /tmp/.vault_pass
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
-        - roles/amneziawg/**
-        - playbooks/gate.yml
-
-deploy:gate-dns:
-  stage: deploy
-  tags:
-    - infra
-  environment:
-    name: production/gate-dns
-  script:
-    - echo "$ANSIBLE_VAULT_PASS" > /tmp/.vault_pass
-    - ansible-playbook playbooks/gate-dns.yml --vault-password-file /tmp/.vault_pass
-  after_script:
-    - rm -f /tmp/.vault_pass
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - roles/amneziawg/**
-        - roles/services/coredns/**
-        - playbooks/gate-dns.yml
+        - ansible/roles/amneziawg/**
+        - ansible/playbooks/gate.yml
