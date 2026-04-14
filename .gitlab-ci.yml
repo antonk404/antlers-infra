@@ -5,7 +5,7 @@ stages:
 variables:
   ANSIBLE_HOST_KEY_CHECKING: "False"
   ANSIBLE_FORCE_COLOR: "true"
-  ANSIBLE_CONFIG: "ansible/ansible.cfg"
+  ANSIBLE_CONFIG: "ansible.cfg"
 
 # linter
 validate:
@@ -28,7 +28,7 @@ deploy:k8s:
     name: production/k8s
   script:
     - echo "$KUBECONFIG_B64" | base64 -d > /tmp/kubeconfig
-    - kubectl --kubeconfig=/tmp/kubeconfig apply -f k8s/
+    - kubectl --kubeconfig=/tmp/kubeconfig apply -R -f k8s/
   after_script:
     - rm -f /tmp/kubeconfig
   rules:
