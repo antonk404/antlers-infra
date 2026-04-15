@@ -9,11 +9,11 @@ su {
     log
 }
 
-matkini {
+antlers {
     hosts {
-        30.0.0.1 frankfurt-1.hub.matkini
-        30.0.0.2 moscow-1.gate.matkini
-        30.0.0.3 moscow-2.gate.matkini
+        30.0.0.1 frankfurt-1.hub.antlers
+        30.0.0.2 moscow-1.gate.antlers
+        30.0.0.3 moscow-2.gate.antlers
     }
     cache
     log
