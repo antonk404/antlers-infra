@@ -19,12 +19,18 @@ spec:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
           effect: NoSchedule
-      containers:
-        - name: synapse
-          image: matrixdotorg/synapse:latest
+      initContainers:
+        - name: config-init
+          image: alpine:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              sed -e "s|\${POSTGRES_PASSWORD}|$POSTGRES_PASSWORD|g" \
+                  -e "s|\${REGISTRATION_SHARED_SECRET}|$REGISTRATION_SHARED_SECRET|g" \
+                  -e "s|\${MACAROON_SECRET_KEY}|$MACAROON_SECRET_KEY|g" \
+                  -e "s|\${FORM_SECRET}|$FORM_SECRET|g" \
+                  /config-template/homeserver.yaml > /data/homeserver.yaml
           env:
-            - name: SYNAPSE_CONFIG_PATH
-              value: /data/homeserver.yaml
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -45,6 +51,14 @@ spec:
                 secretKeyRef:
                   name: matrix-synapse-secret
                   key: form-secret
+          volumeMounts:
+            - name: config-template
+              mountPath: /config-template
+            - name: data
+              mountPath: /data
+      containers:
+        - name: synapse
+          image: matrixdotorg/synapse:latest
           ports:
             - containerPort: 8008
           resources:
@@ -57,13 +71,10 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
-            - name: config
-              mountPath: /data/homeserver.yaml
-              subPath: homeserver.yaml
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: matrix-synapse-data
-        - name: config
+        - name: config-template
           configMap:
             name: synapse-config
